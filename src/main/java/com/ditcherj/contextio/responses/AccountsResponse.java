@@ -9,7 +9,7 @@ import java.util.List;
  * Created by Jonathan Ditcher on 01/04/2017.
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
-public class AccountsResponse extends ContextIOResponse<List<Account>> {
+public class AccountsResponse extends BaseResponse {
 
     private List<Account> accounts;
 
@@ -22,11 +22,6 @@ public class AccountsResponse extends ContextIOResponse<List<Account>> {
 
     public void setAccounts(List<Account> accounts) {
         this.accounts = accounts;
-    }
-
-    @Override
-    public void setPayload(List<Account> payload) {
-        this.accounts = payload;
     }
 
     @Override

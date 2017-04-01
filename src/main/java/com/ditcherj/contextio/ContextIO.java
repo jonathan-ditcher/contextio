@@ -1,11 +1,11 @@
 package com.ditcherj.contextio;
 
+import com.ditcherj.contextio.dto.Account;
+import com.ditcherj.contextio.dto.SortOrder;
 import com.ditcherj.contextio.responses.AccountResponse;
 import com.ditcherj.contextio.responses.AccountsResponse;
-import com.ditcherj.contextio.responses.ContextIOResponse;
-import com.fasterxml.jackson.core.JsonToken;
+import com.ditcherj.contextio.responses.ListContactsResponse;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.*;
 import com.github.scribejava.core.oauth.OAuthService;
@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -47,33 +46,81 @@ public class ContextIO {
     }
 
     public AccountResponse getAccount(String account) {
-        if (StringUtils.isEmpty(account)) 
+        if (StringUtils.isEmpty(account))
             throw new IllegalArgumentException("account must be string representing accountId");
 
         final String endpoint = "accounts/" + account;
-        return this.get(endpoint , null, AccountResponse.class);
 
+        Response response = this.get(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(AccountResponse.class);
     }
 
     public AccountsResponse getAccounts() {
         final String endpoint = "accounts";
-        return this.get(endpoint , null, AccountsResponse.class);
+
+        Response response = this.get(endpoint, null);
+        List<Account> accounts = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<Account>>(){});
+
+        AccountsResponse accountsResponse = new AccountsResponse();
+        accountsResponse.setAccounts(accounts);
+
+        return accountsResponse;
     }
 
-    public <P, T extends ContextIOResponse<P>> T get(String endpoint, Map<String, String> params, Class<T> clazz) {
-        return doCall(Verb.GET, endpoint, params, clazz);
+    public ListContactsResponse listContacts(String accoun) {
+        return this.listContacts(accoun, null, null, null, null, null, null, null);
     }
 
-    public <P, T extends ContextIOResponse<P>> T post(String endpoint, Map<String, String> params, Class<T> clazz) {
-        return doCall(Verb.POST, endpoint, params, clazz);
+    public ListContactsResponse listContacts(String account,
+                                             String search,
+                                             Integer active_before,
+                                             Integer active_after,
+                                             String sort_by,
+                                             SortOrder sort_order,
+                                             Integer limit,
+                                             Integer offset) {
+        logger.trace("");
+
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+
+        Map<String, String> params = new HashMap<>();
+
+        if(!StringUtils.isEmpty(search))
+            params.put("search", search);
+        if(active_before != null)
+            params.put("active_before", String.valueOf(active_before));
+        if(active_after != null)
+            params.put("active_after", String.valueOf(active_after));
+        if(!StringUtils.isEmpty(sort_by))
+            params.put("sort_by", sort_by);
+        if(sort_order != null)
+            params.put("sort_order", sort_order.name());
+        if(limit != null)
+            params.put("limit", String.valueOf(limit));
+        if(offset != null)
+            params.put("offset", String.valueOf(offset));
+
+        final String endpoint = "accounts/"+account+"/contacts";
+        Response response = this.get(endpoint, params);
+
+        return new ResponseBuilder(response).decodeResponse(ListContactsResponse.class);
     }
 
-    public <P, T extends ContextIOResponse<P>> T delete(String endpoint, Map<String, String> params, Class<T> clazz) {
-        return doCall(Verb.DELETE, endpoint, params, clazz);
+    private Response get(String endpoint, Map<String, String> params) {
+        return doCall(Verb.GET, endpoint, params);
     }
 
-    public <P, T extends ContextIOResponse<P>> T doCall(Verb method, String endpoint, Map<String, String> params, Class<T> clazz)  {
-        T response = null;
+    private Response post(String endpoint, Map<String, String> params) {
+        return doCall(Verb.POST, endpoint, params);
+    }
+
+    private Response delete(String endpoint, Map<String, String> params) {
+        return doCall(Verb.DELETE, endpoint, params);
+    }
+
+    private Response doCall(Verb method, String endpoint, Map<String, String> params)  {
+        Response response = null;
 
         try{
             if(params == null)
@@ -94,6 +141,7 @@ public class ContextIO {
             OAuthService service = new ServiceBuilder()
                     .apiKey(this.oauthKey)
                     .apiSecret(this.oauthSecret)
+                    .debugStream(System.out)
                     .build(new ContextIOApi());
 
             OAuthRequest request = new OAuthRequest(method, baseUrl);
@@ -110,69 +158,11 @@ public class ContextIO {
             Token nullToken = new OAuth1AccessToken("", "");
             service.signRequest(nullToken, request);
 
-            Response oauthResponse = service.execute(request);
-
-            String content = oauthResponse.getBody();
-            if(content.startsWith(JsonToken.START_ARRAY.asString()))
-                response = this.decodeResponseAsList(clazz, new TypeReference<List<P>>(){}, content);
-            else
-                response = this.decodeResponse(clazz, content);
-
-            response.setCode(oauthResponse.getCode());
+            response = service.execute(request);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-        return response;
-    }
-
-    private <P, T extends ContextIOResponse<P>> T decodeResponse(Class<T> clazz, String content) {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        T response = null;
-        try {
-            if(!content.startsWith(JsonToken.START_ARRAY.asString()))
-                response = objectMapper.readValue(content, clazz);
-            else
-                response = clazz.newInstance();
-
-            Class<P> payloadClazz = (Class<P>) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[0];
-            P payload = objectMapper.readValue(content, payloadClazz);
-            response.setPayload(payload);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            logger.warn(this.toString());
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        }
-        return response;
-    }
-
-    private <P, T extends ContextIOResponse<P>> T decodeResponseAsList(Class<T> clazz, TypeReference type, String content) {
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        T response = null;
-        try {
-            if(!content.startsWith(JsonToken.START_ARRAY.asString()))
-                response = objectMapper.readValue(content, clazz);
-            else
-                response = clazz.newInstance();
-
-            P payload = objectMapper.readValue(content, type);
-            logger.trace("asdasdasd: " + payload.toString());
-            response.setPayload(payload);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            logger.warn(this.toString());
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        }
         return response;
     }
 
