@@ -9,21 +9,6 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AccountResponse extends BaseResponse {
-	/*
-	{
-  "id": stringId of the account,
-  "username": stringUsername assigned to the account,
-  "created": numberUnix timestamp of account creation time,
-  "suspended": numberUnix timestamp of account suspension time 0 means not suspended,
-  "email_addresses": arrayArray of email addresses for this account,
-  "first_name": stringFirst name of account holder,
-  "last_name": stringLast name of account holder,
-  "password_expired": numberUnix timestamp of user's password expiration. 0 means still valid,
-  "sources": arrayList of email accounts where this account gets data from. See sources for details,
-  "nb_messages": numberTotal number of messages in all sources of this account,
-  "nb_files": numberTotal number of files in all sources of this account
-}
-	 */
 
 	private String id;
 	private String username;

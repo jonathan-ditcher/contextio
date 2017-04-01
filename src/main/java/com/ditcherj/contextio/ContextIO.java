@@ -73,10 +73,10 @@ public class ContextIO {
 
     public ListContactsResponse listContacts(String account,
                                              String search,
-                                             Integer active_before,
-                                             Integer active_after,
-                                             String sort_by,
-                                             SortOrder sort_order,
+                                             Integer activeBefore,
+                                             Integer activeAfter,
+                                             String sortBy,
+                                             SortOrder sortOrder,
                                              Integer limit,
                                              Integer offset) {
         logger.trace("");
@@ -88,14 +88,14 @@ public class ContextIO {
 
         if(!StringUtils.isEmpty(search))
             params.put("search", search);
-        if(active_before != null)
-            params.put("active_before", String.valueOf(active_before));
-        if(active_after != null)
-            params.put("active_after", String.valueOf(active_after));
-        if(!StringUtils.isEmpty(sort_by))
-            params.put("sort_by", sort_by);
-        if(sort_order != null)
-            params.put("sort_order", sort_order.name());
+        if(activeBefore != null)
+            params.put("active_before", String.valueOf(activeBefore));
+        if(activeAfter != null)
+            params.put("active_after", String.valueOf(activeAfter));
+        if(!StringUtils.isEmpty(sortBy))
+            params.put("sort_by", sortBy);
+        if(sortOrder != null)
+            params.put("sort_order", sortOrder.name());
         if(limit != null)
             params.put("limit", String.valueOf(limit));
         if(offset != null)
