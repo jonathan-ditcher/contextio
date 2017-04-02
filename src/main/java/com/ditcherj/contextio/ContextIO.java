@@ -1,10 +1,9 @@
 package com.ditcherj.contextio;
 
 import com.ditcherj.contextio.dto.Account;
+import com.ditcherj.contextio.dto.Message;
 import com.ditcherj.contextio.dto.SortOrder;
-import com.ditcherj.contextio.responses.AccountResponse;
-import com.ditcherj.contextio.responses.AccountsResponse;
-import com.ditcherj.contextio.responses.ListContactsResponse;
+import com.ditcherj.contextio.responses.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.model.*;
@@ -19,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -67,8 +68,8 @@ public class ContextIO {
         return accountsResponse;
     }
 
-    public ListContactsResponse listContacts(String accoun) {
-        return this.listContacts(accoun, null, null, null, null, null, null, null);
+    public ListContactsResponse listContacts(String account) {
+        return this.listContacts(account, null, null, null, null, null, null, null);
     }
 
     public ListContactsResponse listContacts(String account,
@@ -107,6 +108,71 @@ public class ContextIO {
         return new ResponseBuilder(response).decodeResponse(ListContactsResponse.class);
     }
 
+    public ContactResponse getContact(String account, String email) {
+        logger.trace("");
+
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(email))
+            throw new IllegalArgumentException("email required");
+
+        String endpoint = null;
+        try {
+            endpoint = "accounts/"+account+"/contacts/" + URLEncoder.encode(email, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        Response response = this.get(endpoint, null);
+
+        return new ResponseBuilder(response).decodeResponse(ContactResponse.class);
+    }
+
+    public ListMessagesResponse getMessages(String account) {
+        final String endpoint = "accounts/"+account+"/messages";
+
+        Response response = this.get(endpoint, null);
+        List<Message> messages = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<Message>>(){});
+
+        ListMessagesResponse messagesResponse = new ListMessagesResponse();
+        messagesResponse.setMessages(messages);
+
+        return messagesResponse;
+    }
+
+    public PostMessageResponse addMessageToFolder(String account, String dst_source, String dst_folder, String message,
+                                                Boolean flag_seen, Boolean flag_answered, Boolean flag_flagged, Boolean flag_deleted, Boolean flag_draft) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(dst_source))
+            throw new IllegalArgumentException("source required");
+        if (StringUtils.isEmpty(dst_folder))
+            throw new IllegalArgumentException("folder required");
+        if (StringUtils.isEmpty(message))
+            throw new IllegalArgumentException("message required");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("dst_source", dst_source);
+        params.put("dst_folder", dst_folder);
+        params.put("message", message);
+
+        if(flag_seen != null)
+            params.put("flag_seen", flag_seen ? "1" : "0");
+        if(flag_answered != null)
+            params.put("flag_answered", flag_seen ? "1" : "0");
+        if(flag_flagged != null)
+            params.put("flag_flagged", flag_seen ? "1" : "0");
+        if(flag_deleted != null)
+            params.put("flag_deleted", flag_seen ? "1" : "0");
+        if(flag_draft != null)
+            params.put("flag_draft", flag_seen ? "1" : "0");
+
+        final String endpoint = "accounts/"+account+"/messages";
+
+        Response response = this.post(endpoint, null);
+
+        return new ResponseBuilder(response).decodeResponse(PostMessageResponse.class);
+    }
+
     private Response get(String endpoint, Map<String, String> params) {
         return doCall(Verb.GET, endpoint, params);
     }
@@ -130,9 +196,7 @@ public class ContextIO {
 
             if (Verb.GET.equals(method)) {
                 URIBuilder uriBuilder = new URIBuilder(baseUrl);
-                for(Map.Entry<String, String> param : params.entrySet()) {
-                    uriBuilder.addParameter(param.getKey(), param.getValue());
-                }
+                params.entrySet().stream().forEach(e -> uriBuilder.addParameter(e.getKey(), e.getValue()));
                 baseUrl = uriBuilder.build().toString();
             }
 
@@ -185,7 +249,6 @@ public class ContextIO {
             entity.writeTo(baos);
             String payload = new String(baos.toByteArray(), StandardCharsets.UTF_8);
             request.setPayload(payload.getBytes(StandardCharsets.UTF_8));
-
     }
 
     private static String generateBoundaryString() {
