@@ -30,7 +30,6 @@ public abstract class TestBase {
     }
 
     private void buildProperties() {
-
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Properties properties = new Properties();
         try {

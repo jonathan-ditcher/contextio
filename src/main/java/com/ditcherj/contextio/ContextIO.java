@@ -44,6 +44,11 @@ public class ContextIO {
         this.oauthSecret = secret;
     }
 
+    /**
+     * https://context.io/docs/2.0/accounts/connect_tokens
+     * @param account
+     * @return
+     */
     public ConnectTokensResponse getConnectTokens(String account) {
         if (StringUtils.isEmpty(account))
             throw new IllegalArgumentException("account must be string representing accountId");
@@ -118,6 +123,11 @@ public class ContextIO {
         return new ResponseBuilder(response).decodeResponse(SimpleResponse.class);
     }
 
+    /**
+     * https://context.io/docs/2.0/accounts
+     * @param account
+     * @return
+     */
     public AccountResponse getAccount(String account) {
         if (StringUtils.isEmpty(account))
             throw new IllegalArgumentException("account must be string representing accountId");
@@ -140,6 +150,11 @@ public class ContextIO {
         return accountsResponse;
     }
 
+    /**
+     * https://context.io/docs/2.0/accounts/contacts
+     * @param account
+     * @return
+     */
     public ListContactsResponse listContacts(String account) {
         return this.listContacts(account, null, null, null, null, null, null, null);
     }
@@ -199,6 +214,11 @@ public class ContextIO {
         return new ResponseBuilder(response).decodeResponse(ContactResponse.class);
     }
 
+    /**
+     * https://context.io/docs/2.0/accounts/contacts/messages
+     * @param account
+     * @return
+     */
     public ListMessagesResponse getMessages(String account) {
         if (StringUtils.isEmpty(account))
             throw new IllegalArgumentException("account must be string representing accountId");
