@@ -6,11 +6,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * Created by Jonathan Ditcher on 02/04/2017.
  */
 @JsonIgnoreProperties(ignoreUnknown=true)
-public class PostMessageResponse extends BaseResponse {
+public class SimpleResponse extends BaseResponse {
 
     private Boolean success;
 
-    public PostMessageResponse() {
+    public SimpleResponse() {
     }
 
     public Boolean getSuccess() {

@@ -49,7 +49,6 @@ public class ContextIO {
             throw new IllegalArgumentException("account must be string representing accountId");
 
         final String endpoint = "accounts/" + account;
-
         Response response = this.get(endpoint, null);
         return new ResponseBuilder(response).decodeResponse(AccountResponse.class);
     }
@@ -126,8 +125,10 @@ public class ContextIO {
     }
 
     public ListMessagesResponse getMessages(String account) {
-        final String endpoint = "accounts/"+account+"/messages";
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
 
+        final String endpoint = "accounts/"+account+"/messages";
         Response response = this.get(endpoint, null);
         List<Message> messages = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<Message>>(){});
 
@@ -137,8 +138,53 @@ public class ContextIO {
         return messagesResponse;
     }
 
-    public PostMessageResponse addMessageToFolder(String account, String dst_source, String dst_folder, String message,
-                                                Boolean flag_seen, Boolean flag_answered, Boolean flag_flagged, Boolean flag_deleted, Boolean flag_draft) {
+    public MessageResponse getMessage(String account,
+                                      String messageId) {
+        return this.getMessage(account, messageId, null, null, null, null, null, null);
+    }
+
+    public MessageResponse getMessage(String account,
+                                           String messageId,
+                                           Boolean include_thread_size,
+                                           Boolean include_body,
+                                           Boolean include_headers,
+                                           Boolean include_flags,
+                                           Type body_type,
+                                           Boolean include_source) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(messageId))
+            throw new IllegalArgumentException("messageId required");
+
+        Map<String, String> params = new HashMap<>();
+        if(include_thread_size != null)
+            params.put("include_thread_size", include_thread_size ? "1" : "0");
+        if(include_body != null)
+            params.put("include_body", include_body ? "1" : "0");
+        if(include_headers != null)
+            params.put("include_headers", include_headers ? "1" : "0");
+        if(include_flags != null)
+            params.put("include_flags", include_flags ? "1" : "0");
+        if(body_type != null)
+            params.put("body_type", body_type.name());
+        if(include_source != null)
+            params.put("flag_draft", include_source ? "1" : "0");
+
+        final String endpoint = "accounts/"+account+"/messages/" + messageId;
+
+        Response response = this.get(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(MessageResponse.class);
+    }
+
+    public SimpleResponse addMessageToFolder(String account,
+                                             String dst_source,
+                                             String dst_folder,
+                                             String message,
+                                             Boolean flag_seen,
+                                             Boolean flag_answered,
+                                             Boolean flag_flagged,
+                                             Boolean flag_deleted,
+                                             Boolean flag_draft) {
         if (StringUtils.isEmpty(account))
             throw new IllegalArgumentException("account must be string representing accountId");
         if (StringUtils.isEmpty(dst_source))
@@ -156,19 +202,72 @@ public class ContextIO {
         if(flag_seen != null)
             params.put("flag_seen", flag_seen ? "1" : "0");
         if(flag_answered != null)
-            params.put("flag_answered", flag_seen ? "1" : "0");
+            params.put("flag_answered", flag_answered ? "1" : "0");
         if(flag_flagged != null)
-            params.put("flag_flagged", flag_seen ? "1" : "0");
+            params.put("flag_flagged", flag_flagged ? "1" : "0");
         if(flag_deleted != null)
-            params.put("flag_deleted", flag_seen ? "1" : "0");
+            params.put("flag_deleted", flag_deleted ? "1" : "0");
         if(flag_draft != null)
-            params.put("flag_draft", flag_seen ? "1" : "0");
+            params.put("flag_draft", flag_draft ? "1" : "0");
 
         final String endpoint = "accounts/"+account+"/messages";
-
         Response response = this.post(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(SimpleResponse.class);
+    }
 
-        return new ResponseBuilder(response).decodeResponse(PostMessageResponse.class);
+    public MoveMessageResponse moveMessageToFolder(String account, String messageId, String dst_folder) {
+        return this.moveMessageToFolder(account, messageId, dst_folder, null, null, null, null, null, null, null);
+    }
+
+    public MoveMessageResponse moveMessageToFolder(String account,
+                                                   String messageId,
+                                                   String dst_folder,
+                                                   String dst_source,
+                                                   Boolean move,
+                                                   Boolean flag_seen,
+                                                   Boolean flag_answered,
+                                                   Boolean flag_flagged,
+                                                   Boolean flag_deleted,
+                                                   Boolean flag_draft) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(messageId))
+            throw new IllegalArgumentException("messageId required");
+        if (StringUtils.isEmpty(dst_folder))
+            throw new IllegalArgumentException("folder required");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("dst_folder", dst_folder);
+
+        if(!StringUtils.isEmpty(dst_source))
+            params.put("dst_source", dst_source);
+        if(move != null)
+            params.put("move", flag_seen ? "1" : "0");
+        if(flag_seen != null)
+            params.put("flag_seen", flag_seen ? "1" : "0");
+        if(flag_answered != null)
+            params.put("flag_answered", flag_answered ? "1" : "0");
+        if(flag_flagged != null)
+            params.put("flag_flagged", flag_flagged ? "1" : "0");
+        if(flag_deleted != null)
+            params.put("flag_deleted", flag_deleted ? "1" : "0");
+        if(flag_draft != null)
+            params.put("flag_draft", flag_draft ? "1" : "0");
+
+        final String endpoint = "accounts/"+account+"/messages/" +messageId;
+        Response response = this.post(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(MoveMessageResponse.class);
+    }
+
+    public SimpleResponse deleteMessage(String account, String messageId) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(messageId))
+            throw new IllegalArgumentException("messageId required");
+
+        final String endpoint = "accounts/"+account+"/messages/" +messageId;
+        Response response = this.delete(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(SimpleResponse.class);
     }
 
     public MessageBodyResponse getMessageBody(String account, String messageId, Type type){
@@ -182,7 +281,6 @@ public class ContextIO {
             params.put("type", type.getMimeType());
 
         final String endpoint = "accounts/"+account+"/messages/" + messageId + "/body";
-
         Response response = this.get(endpoint, null);
 
         List<MessageBody> messageBodies = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<MessageBody>>(){});
@@ -205,7 +303,6 @@ public class ContextIO {
             params.put("status_ok", String.valueOf(status_ok));
 
         final String endpoint = "accounts/"+account+"/sources";
-
         Response response = this.get(endpoint, null);
 
         List<Source> sources = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<Source>>(){});
@@ -231,7 +328,6 @@ public class ContextIO {
             params.put("no_cache", String.valueOf(no_cache));
 
         final String endpoint = "accounts/"+account+"/sources/" + label + "/folders";
-
         Response response = this.get(endpoint, null);
 
         List<Folder> folders = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<Folder>>(){});
@@ -283,19 +379,17 @@ public class ContextIO {
             if(method.equals(Verb.POST)){
                 if(endpoint.endsWith("messages"))
                     this.handlePostMessageRequest(request, params);
-                else{
-                    for (Map.Entry<String, String> entry : params.entrySet())
-                        request.addBodyParameter(entry.getKey(), entry.getValue());
-                }
+                else
+                    params.entrySet().stream().forEach(e -> request.addBodyParameter(e.getKey(), e.getValue()));
             }
 
             Token nullToken = new OAuth1AccessToken("", "");
             service.signRequest(nullToken, request);
 
             response = service.execute(request);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return response;
     }

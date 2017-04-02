@@ -2,6 +2,7 @@ package com.ditcherj.contextio;
 
 import com.ditcherj.contextio.responses.ListMessagesResponse;
 import com.ditcherj.contextio.responses.MessageBodyResponse;
+import com.ditcherj.contextio.responses.MessageResponse;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -22,7 +23,7 @@ public class TestMessages extends TestBase {
     }
 
     @Test
-    public void testGetMessage() throws Exception {
+    public void testGetMessageBody() throws Exception {
         ListMessagesResponse messages = this.contextIO.getMessages(this.accountId);
 
         MessageBodyResponse response = this.contextIO.getMessageBody(this.accountId, messages.getMessages().get(0).getMessage_id(), null);
@@ -32,5 +33,19 @@ public class TestMessages extends TestBase {
         assertEquals(200, response.getCode());
         assertNotNull(response.getMessageBodies());
         assertFalse(response.getMessageBodies().isEmpty());
+    }
+
+    @Test
+    public void testGetMessage() throws Exception {
+        ListMessagesResponse messages = this.contextIO.getMessages(this.accountId);
+
+        String messageId = messages.getMessages().get(0).getMessage_id();
+
+        MessageResponse response = this.contextIO.getMessage(this.accountId, messageId);
+        logger.trace("response[{}]", response);
+
+        assertNotNull(response);
+        assertEquals(200, response.getCode());
+        assertEquals(messageId, response.getMessage_id());
     }
 }
