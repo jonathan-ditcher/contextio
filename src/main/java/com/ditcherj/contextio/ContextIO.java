@@ -93,7 +93,7 @@ public class ContextIO {
         if(!StringUtils.isEmpty(sortBy))
             params.put("sort_by", sortBy);
         if(sortOrder != null)
-            params.put("sort_order", sortOrder.name());
+            params.put("sort_order", sortOrder.name().toLowerCase());
         if(limit != null)
             params.put("limit", String.valueOf(limit));
         if(offset != null)
@@ -337,6 +337,77 @@ public class ContextIO {
         foldersResponse.setCode(response.getCode());
 
         return foldersResponse;
+    }
+
+    public FlagsResponse getFlags(String account, String messageId) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(messageId))
+            throw new IllegalArgumentException("messageId required");
+
+        final String endpoint = "accounts/"+account+"/messages/" + messageId + "/flags";
+        Response response = this.get(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(FlagsResponse.class);
+    }
+
+    public SetFlagsResponse setFlags(String account, String messageId, Flags flags) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(messageId))
+            throw new IllegalArgumentException("messageId required");
+
+        Map<String, String> params = new HashMap<>();
+        if(flags.getSeen() != null)
+            params.put("seen", flags.getSeen() ? "1" : "0");
+        if(flags.getAnswered() != null)
+            params.put("answered", flags.getAnswered() ? "1" : "0");
+        if(flags.getFlagged() != null)
+            params.put("flagged", flags.getFlagged() ? "1" : "0");
+        if(flags.getDeleted() != null)
+            params.put("deleted", flags.getDeleted() ? "1" : "0");
+        if(flags.getDraft() != null)
+            params.put("draft", flags.getDraft() ? "1" : "0");
+
+        final String endpoint = "accounts/"+account+"/messages/" + messageId + "/flags";
+        Response response = this.post(endpoint, params);
+        return new ResponseBuilder(response).decodeResponse(SetFlagsResponse.class);
+    }
+
+    public MessageThreadResponse getMessageThread(String account, String messageId) {
+        return this.getMessageThread(account, messageId, null, null, null, null, null, null);
+    }
+
+    public MessageThreadResponse getMessageThread(String account,
+                                                  String messageId,
+                                                  Boolean include_body,
+                                                  Boolean include_headers,
+                                                  Boolean include_flags,
+                                                  Type body_type,
+                                                  Integer limit,
+                                                  Integer offset
+    ) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(messageId))
+            throw new IllegalArgumentException("messageId required");
+
+        Map<String, String> params = new HashMap<>();
+        if(include_body != null)
+            params.put("include_body", include_body ? "1" : "0");
+        if(include_headers != null)
+            params.put("include_headers", include_headers ? "1" : "0");
+        if(include_flags != null)
+            params.put("include_flags", include_flags ? "1" : "0");
+        if(body_type != null)
+            params.put("body_type", body_type.name());
+        if(limit != null)
+            params.put("limit", String.valueOf(limit));
+        if(offset != null)
+            params.put("offset", String.valueOf(offset));
+
+        final String endpoint = "accounts/"+account+"/messages/" + messageId + "/thread";
+        Response response = this.get(endpoint, params);
+        return new ResponseBuilder(response).decodeResponse(MessageThreadResponse.class);
     }
 
     private Response get(String endpoint, Map<String, String> params) {

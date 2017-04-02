@@ -8,5 +8,6 @@ public enum SourceStatus {
     CONNECTION_IMPOSSIBLE,
     NO_ACCESS_TO_ALL_MAIL,
     OK,
-    TEMP_DISABLED, DISABLED
+    TEMP_DISABLED,
+    DISABLED
 }
