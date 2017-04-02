@@ -194,6 +194,55 @@ public class ContextIO {
         return messagesResponse;
     }
 
+    public SourcesResponse getSourcesList(String account, SourceStatus status, Integer status_ok) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+
+        Map<String, String> params = new HashMap<>();
+        if(status != null)
+            params.put("status", status.name());
+        if(status_ok != null)
+            params.put("status_ok", String.valueOf(status_ok));
+
+        final String endpoint = "accounts/"+account+"/sources";
+
+        Response response = this.get(endpoint, null);
+
+        List<Source> sources = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<Source>>(){});
+
+        SourcesResponse sourcesResponse = new SourcesResponse();
+        sourcesResponse.setSources(sources);
+        sourcesResponse.setCode(response.getCode());
+
+        return sourcesResponse;
+    }
+
+    public FoldersResponse getFolders(String account, String label, Integer include_extended_counts, Integer no_cache) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+
+        if(StringUtils.isEmpty(label))
+            label = "0";
+
+        Map<String, String> params = new HashMap<>();
+        if(include_extended_counts != null)
+            params.put("include_extended_counts", String.valueOf(include_extended_counts));
+        if(no_cache != null)
+            params.put("no_cache", String.valueOf(no_cache));
+
+        final String endpoint = "accounts/"+account+"/sources/" + label + "/folders";
+
+        Response response = this.get(endpoint, null);
+
+        List<Folder> folders = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<Folder>>(){});
+
+        FoldersResponse foldersResponse = new FoldersResponse();
+        foldersResponse.setFolders(folders);
+        foldersResponse.setCode(response.getCode());
+
+        return foldersResponse;
+    }
+
     private Response get(String endpoint, Map<String, String> params) {
         return doCall(Verb.GET, endpoint, params);
     }
