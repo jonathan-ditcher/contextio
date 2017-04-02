@@ -1,8 +1,6 @@
 package com.ditcherj.contextio;
 
-import com.ditcherj.contextio.dto.Account;
-import com.ditcherj.contextio.dto.Message;
-import com.ditcherj.contextio.dto.SortOrder;
+import com.ditcherj.contextio.dto.*;
 import com.ditcherj.contextio.responses.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.github.scribejava.core.builder.ServiceBuilder;
@@ -171,6 +169,29 @@ public class ContextIO {
         Response response = this.post(endpoint, null);
 
         return new ResponseBuilder(response).decodeResponse(PostMessageResponse.class);
+    }
+
+    public MessageBodyResponse getMessageBody(String account, String messageId, Type type){
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(messageId))
+            throw new IllegalArgumentException("messageId required");
+
+        Map<String, String> params = new HashMap<>();
+        if(type != null)
+            params.put("type", type.getMimeType());
+
+        final String endpoint = "accounts/"+account+"/messages/" + messageId + "/body";
+
+        Response response = this.get(endpoint, null);
+
+        List<MessageBody> messageBodies = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<MessageBody>>(){});
+
+        MessageBodyResponse messagesResponse = new MessageBodyResponse();
+        messagesResponse.setMessageBodies(messageBodies);
+        messagesResponse.setCode(response.getCode());
+
+        return messagesResponse;
     }
 
     private Response get(String endpoint, Map<String, String> params) {
