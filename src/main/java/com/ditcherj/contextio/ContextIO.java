@@ -44,6 +44,22 @@ public class ContextIO {
         this.oauthSecret = secret;
     }
 
+    public ConnectTokensResponse getConnectTokens(String account) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+
+        final String endpoint = "accounts/"+account+"/connect_tokens";
+        Response response = this.get(endpoint, null);
+        List<ConnectToken> tokens = new ResponseBuilder(response).decodeResponseAsList(new TypeReference<List<ConnectToken>>(){});
+
+        ConnectTokensResponse connectTokensResponse = new ConnectTokensResponse();
+        connectTokensResponse.setTokens(tokens);
+        connectTokensResponse.setCode(response.getCode());
+
+        return connectTokensResponse;
+    }
+
+
     public AccountResponse getAccount(String account) {
         if (StringUtils.isEmpty(account))
             throw new IllegalArgumentException("account must be string representing accountId");
@@ -62,6 +78,7 @@ public class ContextIO {
         AccountsResponse accountsResponse = new AccountsResponse();
         accountsResponse.setAccounts(accounts);
         accountsResponse.setCode(response.getCode());
+
         return accountsResponse;
     }
 
@@ -134,6 +151,7 @@ public class ContextIO {
 
         ListMessagesResponse messagesResponse = new ListMessagesResponse();
         messagesResponse.setMessages(messages);
+        messagesResponse.setCode(response.getCode());
 
         return messagesResponse;
     }

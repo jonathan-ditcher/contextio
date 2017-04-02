@@ -11,10 +11,13 @@ import java.util.List;
 public class Account {
 
     private String id;
+    private Long created;
+    private Long suspended;
     private String username;
     private String first_name;
     private String last_name;
     private List<String> email_addresses;
+    private List<Source> sources;
 
     public Account() {
     }
@@ -59,14 +62,41 @@ public class Account {
         this.email_addresses = email_addresses;
     }
 
+    public Long getCreated() {
+        return created;
+    }
+
+    public void setCreated(Long created) {
+        this.created = created;
+    }
+
+    public Long getSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(Long suspended) {
+        this.suspended = suspended;
+    }
+
+    public List<Source> getSources() {
+        return sources;
+    }
+
+    public void setSources(List<Source> sources) {
+        this.sources = sources;
+    }
+
     @Override
     public String toString() {
         return "Account{" +
                 "id='" + id + '\'' +
+                ", created=" + created +
+                ", suspended=" + suspended +
                 ", username='" + username + '\'' +
                 ", first_name='" + first_name + '\'' +
                 ", last_name='" + last_name + '\'' +
                 ", email_addresses=" + email_addresses +
+                ", sources=" + sources +
                 '}';
     }
 }
