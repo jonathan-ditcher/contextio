@@ -1,8 +1,11 @@
 package com.ditcherj.contextio.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Created by Jonathan Ditcher on 01/04/2017.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Query {
 
     private Integer limit;

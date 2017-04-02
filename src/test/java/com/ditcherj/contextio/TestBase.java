@@ -11,6 +11,7 @@ public class TestBase {
     protected String key;
     protected String secret;
     protected String accountId;
+    protected String emailAddress;
 
     public TestBase() {
         this.buildProperties();
@@ -25,6 +26,7 @@ public class TestBase {
             this.key = properties.getProperty("key");
             this.secret = properties.getProperty("secret");
             this.accountId = properties.getProperty("accountId");
+            this.emailAddress = properties.getProperty("emailAddress");
         } catch (IOException e) {
             e.printStackTrace();
         }
