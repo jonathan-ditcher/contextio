@@ -59,6 +59,64 @@ public class ContextIO {
         return connectTokensResponse;
     }
 
+    public CreateConnectTokenResponse createConnectToken(String account, String callback_url) {
+        return this.createConnectToken(account, callback_url, null, null, null, null, null, null, null, null);
+    }
+
+    public CreateConnectTokenResponse createConnectToken(String account,
+                                                         String callback_url,
+                                                         String email,
+                                                         String first_name,
+                                                         String last_name,
+                                                         String source_callback_url,
+                                                         Boolean source_expunge_on_deleted_flag,
+                                                         Boolean source_sync_all_folders,
+                                                         Boolean source_raw_file_list,
+                                                         String status_callback_url
+    ) {
+        logger.trace("");
+
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(callback_url))
+            throw new IllegalArgumentException("callback_url required");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("callback_url", callback_url);
+
+        if(!StringUtils.isEmpty(email))
+            params.put("email", email);
+        if(!StringUtils.isEmpty(first_name))
+            params.put("first_name", first_name);
+        if(!StringUtils.isEmpty(last_name))
+            params.put("last_name", last_name);
+        if(!StringUtils.isEmpty(source_callback_url))
+            params.put("source_callback_url", source_callback_url);
+        if(source_expunge_on_deleted_flag != null)
+            params.put("source_expunge_on_deleted_flag", source_expunge_on_deleted_flag ? "1" : "0");
+        if(source_sync_all_folders != null)
+            params.put("source_sync_all_folders", source_sync_all_folders ? "1" : "0");
+        if(source_raw_file_list != null)
+            params.put("source_raw_file_list", source_raw_file_list ? "1" : "0");
+        if(!StringUtils.isEmpty(status_callback_url))
+            params.put("status_callback_url", status_callback_url);
+
+        final String endpoint = "accounts/"+account+"/connect_tokens";
+        Response response = this.post(endpoint, params);
+
+        return new ResponseBuilder(response).decodeResponse(CreateConnectTokenResponse.class);
+    }
+
+    public SimpleResponse deleteConnectToken(String account, String token) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(token))
+            throw new IllegalArgumentException("token required");
+
+        final String endpoint = "accounts/"+account+"/connect_tokens/" +token;
+        Response response = this.delete(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(SimpleResponse.class);
+    }
 
     public AccountResponse getAccount(String account) {
         if (StringUtils.isEmpty(account))
