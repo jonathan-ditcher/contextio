@@ -62,7 +62,7 @@ public class ContextIO {
 
         AccountsResponse accountsResponse = new AccountsResponse();
         accountsResponse.setAccounts(accounts);
-
+        accountsResponse.setCode(response.getCode());
         return accountsResponse;
     }
 
