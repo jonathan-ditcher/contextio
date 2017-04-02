@@ -12,7 +12,7 @@ public class ConnectToken {
     private String email;
     private Long created;
     private Long used;
-    //private Long expires;
+    //private Long expires; // @TODO Unix timestamp of when this token will expire and be purged. Once the token is used, this property will be set to false,
     private String callback_url;
     private String first_name;
     private String last_name;
