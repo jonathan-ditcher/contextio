@@ -2,11 +2,11 @@ package com.ditcherj.contextio;
 
 import com.ditcherj.contextio.responses.AccountResponse;
 import com.ditcherj.contextio.responses.AccountsResponse;
+import com.ditcherj.contextio.responses.AddEmailAddressResponse;
 import com.ditcherj.contextio.responses.ListEmailAddressesResponse;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Created by Jonathan Ditcher on 01/04/2017.
@@ -44,5 +44,19 @@ public class TestAccounts extends TestBase {
         assertNotNull(response.getEmailAddresses());
         assertEquals(200, response.getCode());
         assertNotNull(response.getEmailAddresses().stream().filter(a -> a.getEmail().equals(this.emailAddress)).findFirst().get());
+    }
+
+    @Test
+    public void testAddEmailAddress() throws Exception {
+
+        String email = "some"+Long.valueOf(System.currentTimeMillis()/1000).intValue()+"@email.com";
+
+        AddEmailAddressResponse response = this.contextIO.addEmailAddress(this.accountId, email);
+        logger.trace("response[{}]", response);
+
+        assertNotNull(response);
+        assertTrue(response.getSuccess());
+        assertEquals(200, response.getCode());
+        assertEquals(email, response.getEmail_address());
     }
 }

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +131,57 @@ public class ContextIO {
         final String endpoint = "accounts/" + account + "/email_addresses";
         Response response = this.get(endpoint, null);
         return new ResponseBuilder(response).decodeResponse(ListEmailAddressesResponse.class);
+    }
+
+    public AddEmailAddressResponse addEmailAddress(String account, String email) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(email))
+            throw new IllegalArgumentException("email required");
+
+        Map<String, String> params = Collections.singletonMap("email_address", email);
+
+        final String endpoint = "accounts/" + account + "/email_addresses";
+        Response response = this.post(endpoint, params);
+        return new ResponseBuilder(response).decodeResponse(AddEmailAddressResponse.class);
+    }
+
+    public SimpleResponse modifyEmailAddress(String account, String email, Boolean primary) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(email))
+            throw new IllegalArgumentException("email required");
+
+        Map<String, String> params = new HashMap<>();
+        if(primary != null)
+            params.put("primary", primary ? "!" : "0");
+
+        String endpoint = null;
+        try {
+            endpoint = "accounts/" + account + "/email_addresses/" + URLEncoder.encode(email, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        Response response = this.post(endpoint, params);
+        return new ResponseBuilder(response).decodeResponse(SimpleResponse.class);
+    }
+
+    public SimpleResponse deleteEmailAddress(String account, String email) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+        if (StringUtils.isEmpty(email))
+            throw new IllegalArgumentException("email required");
+
+        String endpoint = null;
+        try {
+            endpoint = "accounts/" + account + "/email_addresses/" + URLEncoder.encode(email, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        Response response = this.delete(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(SimpleResponse.class);
     }
 
     /**
