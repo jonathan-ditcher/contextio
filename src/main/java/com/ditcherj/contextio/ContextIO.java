@@ -123,6 +123,15 @@ public class ContextIO {
         return new ResponseBuilder(response).decodeResponse(SimpleResponse.class);
     }
 
+    public ListEmailAddressesResponse getEmailAddresses(String account) {
+        if (StringUtils.isEmpty(account))
+            throw new IllegalArgumentException("account must be string representing accountId");
+
+        final String endpoint = "accounts/" + account + "/email_addresses";
+        Response response = this.get(endpoint, null);
+        return new ResponseBuilder(response).decodeResponse(ListEmailAddressesResponse.class);
+    }
+
     /**
      * https://context.io/docs/2.0/accounts
      * @param account

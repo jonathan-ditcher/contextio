@@ -2,6 +2,7 @@ package com.ditcherj.contextio;
 
 import com.ditcherj.contextio.responses.AccountResponse;
 import com.ditcherj.contextio.responses.AccountsResponse;
+import com.ditcherj.contextio.responses.ListEmailAddressesResponse;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -31,5 +32,17 @@ public class TestAccounts extends TestBase {
         assertNotNull(response.getAccounts());
         assertEquals(200, response.getCode());
         assertNotNull(response.getAccounts().stream().filter(a -> a.getId().equals(this.accountId)).findFirst().get());
+    }
+
+    @Test
+    public void testEmailAddresses() throws Exception {
+
+        ListEmailAddressesResponse response = this.contextIO.getEmailAddresses(this.accountId);
+        logger.trace("response[{}]", response);
+
+        assertNotNull(response);
+        assertNotNull(response.getEmailAddresses());
+        assertEquals(200, response.getCode());
+        assertNotNull(response.getEmailAddresses().stream().filter(a -> a.getEmail().equals(this.emailAddress)).findFirst().get());
     }
 }
